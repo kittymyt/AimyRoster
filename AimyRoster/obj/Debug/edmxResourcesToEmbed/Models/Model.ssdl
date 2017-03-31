@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="RosterModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="Sites">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Name" Type="varchar" MaxLength="200" />
+  </EntityType>
+  <EntityType Name="StaffRoster">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="StaffId" Type="int" />
+    <Property Name="StartDate" Type="datetime" />
+    <Property Name="EndDate" Type="datetime" />
+    <Property Name="SiteId" Type="int" />
+    <Property Name="SalaryCost" Type="decimal" Precision="18" Scale="0" />
+  </EntityType>
+  <EntityType Name="Staffs">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Name" Type="varchar" MaxLength="50" />
+    <Property Name="SiteId" Type="int" Nullable="false" />
+    <Property Name="SiteName" Type="varchar" MaxLength="200" />
+  </EntityType>
+  <Association Name="FK_RosterInformation_Sites">
+    <End Role="Sites" Type="Self.Sites" Multiplicity="0..1" />
+    <End Role="StaffRoster" Type="Self.StaffRoster" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Sites">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="StaffRoster">
+        <PropertyRef Name="SiteId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_RosterInformation_Staffs">
+    <End Role="Staffs" Type="Self.Staffs" Multiplicity="0..1" />
+    <End Role="StaffRoster" Type="Self.StaffRoster" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Staffs">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="StaffRoster">
+        <PropertyRef Name="StaffId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Staffs_Sites">
+    <End Role="Sites" Type="Self.Sites" Multiplicity="1" />
+    <End Role="Staffs" Type="Self.Staffs" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Sites">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="Staffs">
+        <PropertyRef Name="SiteId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="RosterModelStoreContainer">
+    <EntitySet Name="Sites" EntityType="Self.Sites" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="StaffRoster" EntityType="Self.StaffRoster" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Staffs" EntityType="Self.Staffs" Schema="dbo" store:Type="Tables" />
+    <AssociationSet Name="FK_RosterInformation_Sites" Association="Self.FK_RosterInformation_Sites">
+      <End Role="Sites" EntitySet="Sites" />
+      <End Role="StaffRoster" EntitySet="StaffRoster" />
+    </AssociationSet>
+    <AssociationSet Name="FK_RosterInformation_Staffs" Association="Self.FK_RosterInformation_Staffs">
+      <End Role="Staffs" EntitySet="Staffs" />
+      <End Role="StaffRoster" EntitySet="StaffRoster" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Staffs_Sites" Association="Self.FK_Staffs_Sites">
+      <End Role="Sites" EntitySet="Sites" />
+      <End Role="Staffs" EntitySet="Staffs" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

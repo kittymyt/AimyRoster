@@ -1,0 +1,101 @@
+﻿.k-input:hover,
+.k-select:hover,
+.k-dropdown-wrap.k-state-default.k-state-hover,
+.k-dropdown-wrap.k-state-default.k-state-focused,
+.k-dropdown-wrap.k-state-default.k-state-focused.k-state-active.k-state-border-down:hover{
+    background-color: white !important; 
+}
+
+  .k-grid tr:not(.k-state-selected):hover{
+      background: none;
+      color: inherit;
+  }
+
+    .k-grid tr.k-alt:not(.k-state-selected):hover {
+      background: inherit;
+  }
+
+
+.container-fluid {
+  margin-top: 40px;
+}
+
+.demo-section.k-content{
+     background: #F5F5F5;
+}
+
+#left-panel {
+  outline: none;
+  min-height: 500px;
+  background: #F5F5F5;
+  /*border-collapse: collapse;*/
+}
+
+#right-panel {
+  outline: none;
+  min-height: 500px;
+  /*border-collapse: collapse;*/
+}
+
+/*.staff-row{
+  height: 10px;
+}*/
+
+/*.myCells {
+    color: #787878;
+    background-color: white;
+}*/
+
+.add-roster-btn{
+  cursor: pointer;
+}
+
+.add-roster-wrapper{
+  text-align:center;
+  vertical-align: bottom;
+  min-height: 80px;
+}
+
+.glyphicon-plus {
+	margin-top:5px;
+	margin-bottom:5px;
+	/*background:orange;*/
+}
+
+.innerdiv{
+	background:#32C0C6;
+	display: block;
+	width:80%;
+	margin:auto;
+	margin-top:3px;
+	font-size:10px;
+	padding:5px 0 5px 0;
+}
+
+.active{
+    background: #30ABE0;
+}
+
+.dateHeader, .dateHeader:hover{
+    background-color: #D8EAF4;
+}
+
+.staffName{
+    background-color: #D8EAF4;
+}
+
+.todayHeader{
+    background-color: #30ABE0;
+    color: white;
+}
+
+.ui-grid-row:nth-child(even) .ui-grid-cell {
+    background-color: transparent !important;
+}
+
+
+/*.k-grid table tbody tr:hover,
+.k-grid-content table tbody tr:hover
+{
+    background-color: white;    
+}*/
