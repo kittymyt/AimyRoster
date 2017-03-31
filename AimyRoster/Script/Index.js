@@ -103,12 +103,10 @@ function LoadTasks(readStartDate,readEndDate) {
             $.each(response, function (key, value) {
 
                 var targetStartDate = new Date(value.StartDate.slice(0, -2));
-
                 var targetcellStartDate = weekNames[targetStartDate.getDay()] + targetStartDate.getDate() + monthNames[targetStartDate.getMonth()];
               
                 var readStartTime = (value.StartDate).substr((value.StartDate).length - 7);
                 var targetStartTime = [readStartTime.slice(0, 5), " ", readStartTime.slice(5)].join('').trim();
-
 
                 var readEndTime = (value.EndDate).substr((value.EndDate).length - 7);
                 var targetEndTime = [readEndTime.slice(0, 5), " ", readEndTime.slice(5)].join('').trim();
