@@ -151,7 +151,7 @@ $(document).ready(function () {
         {
             deleteTasks.push(widgetId);
         } else {
-            for(var i =0;i<unsavedTasks.length;i++)
+            for(var i=0;i<unsavedTasks.length;i++)
             {
                 if(bookDetail.SiteId == unsavedTasks[i].SiteId && bookDetail.StaffId == unsavedTasks[i].StaffId 
                     && bookDetail.StartDate == unsavedTasks[i].StartDate && bookDetail.EndDate == unsavedTasks[i].EndDate)
@@ -266,29 +266,33 @@ $(document).ready(function () {
 
 });
 
+function SaveProcess() {
+    if (unsavedTasks.length > 0 && unsavedTasks != null) {
+        $.ajax({
+            url: "/Home/SaveBooking",
+            datatype: "json",
+            data: { bookDetails: unsavedTasks },
+            type: "POST",
+        });
+    }
+    if (deleteTasks.length > 0 && deleteTasks != null) {
+        $.ajax({
+            url: "/Home/DeleteBooking",
+            datatype: "json",
+            data: { deleteDetails: deleteTasks },
+            type: "POST",
+        });
+    }
+    unsavedTasks = [];
+    deleteTasks = [];
+    alert("Saved Successfully");
+}
+
 //run the save process: add and remove widgets
 function saveChanges() {
     var ask = confirm("Want to save the changes?");
     if (ask == true) {
-        if (unsavedTasks.length > 0 && unsavedTasks != null) {
-            $.ajax({
-                url: "/Home/SaveBooking",
-                datatype: "json",
-                data: { bookDetails: unsavedTasks },
-                type: "POST",
-            });
-        }
-        if (deleteTasks.length > 0 && deleteTasks!=null) {
-            $.ajax({
-                url: "/Home/DeleteBooking",
-                datatype: "json",
-                data: { deleteDetails: deleteTasks },
-                type: "POST",
-            });
-        }
-        unsavedTasks = [];
-        deleteTasks = [];
-        alert("Saved Successfully");
+        SaveProcess();       
     }
 }
 

@@ -11,24 +11,31 @@
     initialDateLine();
 
     updateWeekButtons();
+    $("#year").text($("#btnWeekA").attr("value").substr(11, 4));
 
     changeButtonColor();
 
 
     $(".btnWeekSel").click(function () {
+        if (unsavedTasks.length > 0 || deleteTasks.length > 0)
+        {
+            var ask = confirm("Want to save the changes?");
+            if (ask == true) {
+                SaveProcess();
 
-        var tableMonday = new Date($(this).val());
-
-        updateDateTitle(tableMonday);
-        changeButtonColor();
-
-
-        updategrid(siteId);
-    });
-
-    //renew the th based on the week user select
-    $("#btnWeekA,#btnWeekB,#btnWeekC").click(function () {
-       
+                var tableMonday = new Date($(this).val());
+                updateDateTitle(tableMonday);
+                changeButtonColor();
+                updategrid(siteId);
+                $("#year").text($(this).attr("value").substr(11, 4));
+            }
+        } else {
+            var tableMonday = new Date($(this).val());
+            updateDateTitle(tableMonday);
+            changeButtonColor();
+            updategrid(siteId);
+            $("#year").text($(this).attr("value").substr(11, 4));
+        }        
     });
 
 
@@ -45,17 +52,31 @@
     });
 
     $("#btnToday").click(function () {
-        viewingDate = getCurrentMonday()
-        updateWeekButtons();
-
-        initialDateLine();
-
-        changeButtonColor();
-
-        updategrid(siteId);
+        if (unsavedTasks.length > 0 || deleteTasks.length > 0)
+        {
+            var ask = confirm("Want to save the changes?");
+            if (ask == true) {
+                SaveProcess();
+                viewingDate = getCurrentMonday();
+                updateWeekButtons();
+                initialDateLine();
+                changeButtonColor();
+                updategrid(siteId);
+                $("#year").text($("#btnWeekA").attr("value").substr(11, 4));
+            }
+        } else {
+            viewingDate = getCurrentMonday();
+            updateWeekButtons();
+            initialDateLine();
+            changeButtonColor();
+            updategrid(siteId);
+            $("#year").text($("#btnWeekA").attr("value").substr(11, 4));
+        }      
     });
 
-    
+    function showYear() {
+
+    }
 
 
     function changeButtonColor() {

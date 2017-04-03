@@ -10,7 +10,7 @@ var weekNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 $(function () {
     
-    $("#sites").kendoDropDownList({
+    var chooseSite = $("#sites").kendoDropDownList({
         filter: "contains",
         dataSource: {
             transport: {
@@ -23,55 +23,68 @@ $(function () {
         dataTextField: "Name",
         dataValueField: "Id",
         change: onSelect,
+        select: function (e) {
+            if (unsavedTasks.length > 0 || deleteTasks.length > 0) {
+
+                e.preventDefault();
+
+                $("#warning").css("display", "block");
+            } else {
+                $("#warning").css("display", "none");
+            }
+        },
     }).data("kendoDropDownList");
 
     
+    
 
     function onSelect() {
-        siteId = this.value();
+            siteId = this.value();
 
-        gridData = new kendo.data.DataSource({
-            transport: {
-                read: function (options) {
+            gridData = new kendo.data.DataSource({
+                transport: {
+                    read: function (options) {
 
-                    $.ajax({
-                        url: "/Home/GetStaff",
-                        data: { getSiteId: siteId },
-                        dataType: "json",
-                        success: function (response) {
-                            var result = response;
-                            result.forEach(function (value) {
-                                value.Mon = $("th:eq(0)").html().replace(/\s+/g, '');
-                                value.Tue = $("th:eq(1)").html().replace(/\s+/g, '');
-                                value.Wed = $("th:eq(2)").html().replace(/\s+/g, '');
-                                value.Thu = $("th:eq(3)").html().replace(/\s+/g, '');
-                                value.Fri = $("th:eq(4)").html().replace(/\s+/g, '');
-                                value.Sat = $("th:eq(5)").html().replace(/\s+/g, '');
-                                value.Sun = $("th:eq(6)").html().replace(/\s+/g, '');
-                            });
-                            options.success(result)
-                        }
-                    })
-                }
-            },
-        });
+                        $.ajax({
+                            url: "/Home/GetStaff",
+                            data: { getSiteId: siteId },
+                            dataType: "json",
+                            success: function (response) {
+                                var result = response;
+                                result.forEach(function (value) {
+                                    value.Mon = $("th:eq(0)").html().replace(/\s+/g, '');
+                                    value.Tue = $("th:eq(1)").html().replace(/\s+/g, '');
+                                    value.Wed = $("th:eq(2)").html().replace(/\s+/g, '');
+                                    value.Thu = $("th:eq(3)").html().replace(/\s+/g, '');
+                                    value.Fri = $("th:eq(4)").html().replace(/\s+/g, '');
+                                    value.Sat = $("th:eq(5)").html().replace(/\s+/g, '');
+                                    value.Sun = $("th:eq(6)").html().replace(/\s+/g, '');
+                                });
+                                options.success(result)
+                            }
+                        })
+                    }
+                },
+            });
 
-        var startDate = $('th:eq(0)').data("date");
-        var readStartDate = (startDate.getFullYear() + "-" + (startDate.getMonth() + 1) + "-" + startDate.getDate());
-        var endDate = $('th:eq(6)').data("date");
-        var readEndDate = (endDate.getFullYear() + "-" + (endDate.getMonth() + 1)+ "-" + endDate.getDate());
+            var startDate = $('th:eq(0)').data("date");
+            var readStartDate = (startDate.getFullYear() + "-" + (startDate.getMonth() + 1) + "-" + startDate.getDate());
+            var endDate = $('th:eq(6)').data("date");
+            var readEndDate = (endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate());
 
-        var newgrid = $("#scheduler").data("kendoGrid");
-        newgrid.setDataSource(gridData);
-        LoadTasks(readStartDate,readEndDate);
-    }
+            var newgrid = $("#scheduler").data("kendoGrid");
+            newgrid.setDataSource(gridData);
+            LoadTasks(readStartDate, readEndDate);
+     }
+        
+    
 
     $("#startTime").kendoTimePicker();
     $("#finishTime").kendoTimePicker();
 
 
     $("#scheduler").kendoGrid({
-        height: 500,
+        //height: 500,
         rowTemplate: kendo.template($("#template").html()),
         columns: [
             { field: "Mon" },
@@ -83,6 +96,7 @@ $(function () {
             { field: "Sun" },
         ],
         editable: false,
+        scrollable: false,
         noRecords: {
             template: "Please select a site."
         },

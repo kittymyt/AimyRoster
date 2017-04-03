@@ -38,6 +38,7 @@
                 <div class="demo-section k-content">
                     <h4>Sites</h4>
                     <input id="sites" style="width: 100%;" />
+                    <p id="warning" style="display:none;">Please save the changes.</p>
                     <hr>
                     <h4>Time Interval</h4>
                     <input id="timeinterval" style="width: 100%;" />
@@ -62,12 +63,13 @@
                     <button type="button" class="btn btn-info" id="btnNextWeek">
                         <span class="glyphicon glyphicon-chevron-right"></span>
                     </button>
+                    <span id="year" style="margin-left: 10px">Year</span>
+                    <div class="inline pull-right">
+                        <button type="button" class="btn btn-info" id="saveButton">Save Changes</button>
+                    </div>
                 </div>
                 <div id="scheduler"></div>
 
-                <div>
-                    <button type="button" class="btn btn-info" id="saveButton">Save Changes</button>
-                </div>
 
             </div>
         </div>

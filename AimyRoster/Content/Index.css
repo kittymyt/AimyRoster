@@ -11,6 +11,10 @@
       color: inherit;
   }
 
+  .k-grid{
+      width: 100%;
+  }
+
     .k-grid tr.k-alt:not(.k-state-selected):hover {
       background: inherit;
   }
@@ -35,16 +39,10 @@
   outline: none;
   min-height: 500px;
   /*border-collapse: collapse;*/
+  display: inline-block;
+  float: right;
 }
 
-/*.staff-row{
-  height: 10px;
-}*/
-
-/*.myCells {
-    color: #787878;
-    background-color: white;
-}*/
 
 .add-roster-btn{
   cursor: pointer;
@@ -94,8 +92,22 @@
 }
 
 
-/*.k-grid table tbody tr:hover,
-.k-grid-content table tbody tr:hover
-{
-    background-color: white;    
-}*/
+.inline{
+    display: inline-block;
+}
+
+.pull-right{
+    float: right!important;
+}
+
+div{
+    display: block;
+}
+
+.input-group{
+    width: 100%;
+}
+
+#warning{
+    color: red;
+}
