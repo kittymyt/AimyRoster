@@ -9,8 +9,8 @@ var weekNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 
 $(function () {
-    
-    var chooseSite = $("#sites").kendoDropDownList({
+
+    $("#sites").kendoDropDownList({
         filter: "contains",
         dataSource: {
             transport: {
@@ -23,61 +23,63 @@ $(function () {
         dataTextField: "Name",
         dataValueField: "Id",
         change: onSelect,
-        select: function (e) {
-            if (unsavedTasks.length > 0 || deleteTasks.length > 0) {
-
-                e.preventDefault();
-
-                $("#warning").css("display", "block");
-            } else {
-                $("#warning").css("display", "none");
-            }
-        },
+        index:-1
     }).data("kendoDropDownList");
 
-    
-    
+
+
 
     function onSelect() {
-            siteId = this.value();
+        siteId = this.value();
 
-            gridData = new kendo.data.DataSource({
-                transport: {
-                    read: function (options) {
+        if (unsavedTasks.length > 0 || deleteTasks.length > 0) {
+            saveChanges();
+            updateGridBasedOnSite(siteId);
+        } else {
+            updateGridBasedOnSite(siteId);
+        }
+    }
 
-                        $.ajax({
-                            url: "/Home/GetStaff",
-                            data: { getSiteId: siteId },
-                            dataType: "json",
-                            success: function (response) {
-                                var result = response;
-                                result.forEach(function (value) {
-                                    value.Mon = $("th:eq(0)").html().replace(/\s+/g, '');
-                                    value.Tue = $("th:eq(1)").html().replace(/\s+/g, '');
-                                    value.Wed = $("th:eq(2)").html().replace(/\s+/g, '');
-                                    value.Thu = $("th:eq(3)").html().replace(/\s+/g, '');
-                                    value.Fri = $("th:eq(4)").html().replace(/\s+/g, '');
-                                    value.Sat = $("th:eq(5)").html().replace(/\s+/g, '');
-                                    value.Sun = $("th:eq(6)").html().replace(/\s+/g, '');
-                                });
-                                options.success(result)
-                            }
-                        })
-                    }
-                },
-            });
+    function updateGridBasedOnSite(siteId) {
+        gridData = new kendo.data.DataSource({
+            transport: {
+                read: function (options) {
 
-            var startDate = $('th:eq(0)').data("date");
-            var readStartDate = (startDate.getFullYear() + "-" + (startDate.getMonth() + 1) + "-" + startDate.getDate());
-            var endDate = $('th:eq(6)').data("date");
-            var readEndDate = (endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate());
+                    $.ajax({
+                        url: "/Home/GetStaff",
+                        data: { getSiteId: siteId },
+                        dataType: "json",
+                        success: function (response) {
+                            var result = response;
+                            result.forEach(function (value) {
+                                value.Mon = $("th:eq(0)").html().replace(/\s+/g, '');
+                                value.Tue = $("th:eq(1)").html().replace(/\s+/g, '');
+                                value.Wed = $("th:eq(2)").html().replace(/\s+/g, '');
+                                value.Thu = $("th:eq(3)").html().replace(/\s+/g, '');
+                                value.Fri = $("th:eq(4)").html().replace(/\s+/g, '');
+                                value.Sat = $("th:eq(5)").html().replace(/\s+/g, '');
+                                value.Sun = $("th:eq(6)").html().replace(/\s+/g, '');
+                            });
+                            options.success(result)
+                        }
+                    })
+                }
+            },
+        });
 
-            var newgrid = $("#scheduler").data("kendoGrid");
-            newgrid.setDataSource(gridData);
-            LoadTasks(readStartDate, readEndDate);
-     }
-        
-    
+        var startDate = $('th:eq(0)').data("date");
+        var readStartDate = (startDate.getFullYear() + "-" + (startDate.getMonth() + 1) + "-" + startDate.getDate());
+        var endDate = $('th:eq(6)').data("date");
+        var readEndDate = (endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + (endDate.getDate() + 1));
+
+        var newgrid = $("#scheduler").data("kendoGrid");
+        newgrid.setDataSource(gridData);
+        LoadTasks(readStartDate, readEndDate);
+
+        $("#saveButton").css("display", "none");
+    }
+
+
 
     $("#startTime").kendoTimePicker();
     $("#finishTime").kendoTimePicker();
@@ -100,10 +102,8 @@ $(function () {
         noRecords: {
             template: "Please select a site."
         },
-        
     });
-    
-})
+});
 
 
 function LoadTasks(readStartDate,readEndDate) {
@@ -128,10 +128,13 @@ function LoadTasks(readStartDate,readEndDate) {
                 var targetcell = "" + value.SiteId + value.StaffId + targetcellStartDate;
 
                 var targetDiv = $('#cell_' + targetcell);
-                var columnNum = targetDiv.index();
+                var columnNum = targetDiv.closest("td").index();
 
                 var div =
-                  $("<div class='innerdiv' data-id='" + value.Id + "' col='" + columnNum + "'>" + targetStartTime.replace(/^(?:00:)?0?/, '') + " - " + targetEndTime.replace(/^(?:00:)?0?/, '') + "<span class='glyphicon glyphicon-remove'></div>");
+                  $("<div class='innerdiv' data-id='" + value.Id + "' col='" + columnNum + "'><span class='planStart'>"
+                    + targetStartTime.replace(/^(?:00:)?0?/, '') + "</span> - <span class='planEnd'>"
+                    + targetEndTime.replace(/^(?:00:)?0?/, '') + "</span> " + "<div class='glyphicon glyphicon-pencil remove-staff edit-Record'></div>"
+                    + "<div class='glyphicon glyphicon-remove'></div>" + "</div>");
                 if (targetDiv !== undefined) {
                     targetDiv.append(div);
                 }

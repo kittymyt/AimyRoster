@@ -1,26 +1,12 @@
 ﻿var unsavedTasks = [];
 var deleteTasks = [];
+var editTasks = [];
 
 $(document).ready(function () {
 
     var start;
     var end;
-    
-    $(".glyphicon-plus").on({
-        hover: function () {
-            //$(this).css("color", "yellow");
-            $(this).css('cursor', 'pointer');
-            //$(this).animate({fontSize:"24px"},20);
-            $('.myClass').css('cursor', 'pointer');
-        },
-	    mouseleave: function () {
-	        //$(this).css("color", "#32C0C6");
-	        $(this).css('cursor', 'auto');
-	        //$(this).animate({fontSize:"14px"},20);
-	}
-	});
 
-    
 
     $("body").on("click", ".glyphicon-plus", function () {
 
@@ -32,7 +18,6 @@ $(document).ready(function () {
             finishTime = '05:00 PM';
 
       
-
         //get the widget information
         var currentColumnIndex = $(this).closest("td").index();
         var selectedRow = $(this).closest('tr').find('div[class="add-roster-wrapper"]');
@@ -53,11 +38,7 @@ $(document).ready(function () {
             EndDate: selectEndDate,
         };
 
-
-        var dataIndex = "[data-index=" + currentColumnIndex + "]";
-        var dateHeader = $("#scheduler thead").find(dataIndex).data().date;
-
-
+        //conflict Check
         $.ajax({
             url: "/Home/ReadExistingTask",
             data: { optStaffId: staffId, optStartDate: selectStartDate, optEndDate: selectEndDate },
@@ -66,30 +47,29 @@ $(document).ready(function () {
             success: function (response) {
                 var result = response;
                 if (result == "") {
-                    var overlapTask = unsavedTasks.some(function (search) {
-                        console.table(search)
+                    var overlapTask = conflictCheck(staffId, columnDate, selectStartDate, selectEndDate);
+                    //var overlapTask = unsavedTasks.some(function (search) {
+                    //    console.table(search)
 
-                        var arrStartDate = search.StartDate;
-                        //var splitArrStartDate = arrStartDate.split(' ', 3);
-                        //var arrDay = splitArrStartDate[0].slice(-2);
-                        var arrStartDateTime = new Date(arrStartDate);
-                        var arrDay = arrStartDateTime.getDate();
-                        var selectStartDateTime = new Date(selectStartDate);
+                    //    var arrStartDate = search.StartDate;
+                    //    var arrStartDateTime = new Date(arrStartDate);
+                    //    var arrDay = arrStartDateTime.getDate();
+                    //    var selectStartDateTime = new Date(selectStartDate);
 
-                        var arrEndDate = search.EndDate;
-                        var arrEndDateTime = new Date(arrEndDate);
-                        var selectEndDateTime = new Date(selectEndDate);
+                    //    var arrEndDate = search.EndDate;
+                    //    var arrEndDateTime = new Date(arrEndDate);
+                    //    var selectEndDateTime = new Date(selectEndDate);
 
-                        return (
-                                 ((search.StaffId == staffId) && (arrDay == columnDate.getDate()))
-                                && !((arrEndDateTime <= selectStartDateTime) || (selectEndDateTime <= arrStartDateTime))
-                            )
-                    });
+                    //    return (
+                    //             ((search.StaffId == staffId) && (arrDay == columnDate.getDate()))
+                    //            && !((arrEndDateTime <= selectStartDateTime) || (selectEndDateTime <= arrStartDateTime))
+                    //        )
+                    //});
                     if (overlapTask == true) {
                         alert('Warning: Staff is already booked for selected date & time');
                     } else {
                         var div =
-                            $("<div class='innerdiv'>" + startTime + " - " + finishTime + "<span class='glyphicon glyphicon-remove'></div>");
+                            $("<div class='innerdiv'><span class='planStart'>" + startTime + "</span> - <span class='planEnd'>" + finishTime + "</span><div class='glyphicon glyphicon-pencil remove-staff edit-Record'></div>" + "<div class='glyphicon glyphicon-remove'></div></div>");
                         var selectedDiv = $('#' + selectedCell);
 
                         //calculate the week time of a staff
@@ -100,6 +80,8 @@ $(document).ready(function () {
 
                         selectedDiv.append(div);
                         unsavedTasks.push(bookDetail);
+
+                        saveButtonDisplay();
                     }
                 }
                 else {
@@ -108,16 +90,29 @@ $(document).ready(function () {
             }
         });
     });
-   
 
-    $(".glyphicon-remove").on({
-        hover: function () {
-            $(this).css('cursor', 'pointer');
-        },
-        mouseleave: function () {
-            $(this).css('cursor', 'auto');
-        }
-	});
+    function conflictCheck(staffId, columnDate, startPoint, endPoint) {
+
+        var a = unsavedTasks.some(function (search) {
+            console.table(search)
+
+            var arrStartDate = search.StartDate;
+            var arrStartDateTime = new Date(arrStartDate);
+            var arrDay = arrStartDateTime.getDate();
+            var selectStartDateTime = new Date(startPoint);
+
+            var arrEndDate = search.EndDate;
+            var arrEndDateTime = new Date(arrEndDate);
+            var selectEndDateTime = new Date(endPoint);
+
+            return (
+                     ((search.StaffId == staffId) && (arrDay == columnDate.getDate()))
+                    && !((arrEndDateTime <= selectStartDateTime) || (selectEndDateTime <= arrStartDateTime))
+                );
+        });
+
+        return a;
+    };
 
 
     $("body").on("click", ".glyphicon-remove", function (event) {
@@ -150,6 +145,7 @@ $(document).ready(function () {
         if (widgetId != null)
         {
             deleteTasks.push(widgetId);
+            saveButtonDisplay();
         } else {
             for(var i=0;i<unsavedTasks.length;i++)
             {
@@ -157,6 +153,7 @@ $(document).ready(function () {
                     && bookDetail.StartDate == unsavedTasks[i].StartDate && bookDetail.EndDate == unsavedTasks[i].EndDate)
                 {
                     unsavedTasks.splice(i, 1);
+                    saveButtonDisplay();
                 }
             }
         }
@@ -169,9 +166,100 @@ $(document).ready(function () {
 
         $(this).parent().remove();        
 
+        
     });
 
     
+    $("body").on("click", ".edit-Record", function () {
+        $("#startTime").css("background", "steelblue");
+        var dataId = $(this).parent().attr("data-id");
+
+        $("#startTime").val($(this).siblings(".planStart").text());
+        $("#finishTime").val($(this).siblings(".planEnd").text());
+        
+        var startTime = $(this).siblings(".planStart");
+        var finishTime = $(this).siblings(".planEnd");
+
+        var currentSiteId = $('#sites').val();
+        var currentStaffId = $(this).parents().siblings(".staffTemplate").attr("data-value");
+        var currentColumnIndex = $(this).closest("td").index();
+        var columnDate = $('th:eq(' + currentColumnIndex + ')').data("date");
+        var originalStartDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + startTime.text());
+        var originalEndDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + finishTime.text());
+
+        //var existingHours = parseFloat($('div' + dataStaffId).text());
+
+        var originalBooking = {
+            SiteId: currentSiteId,
+            StaffId: currentStaffId,
+            StartDate: originalStartDate,
+            EndDate: originalEndDate,
+        }
+
+        //find the index of the unsave plans in the unsavedTasks
+        if (dataId == null) {
+            for (var i = 0; i < unsavedTasks.length; i++)
+            {
+                if(originalBooking.SiteId == unsavedTasks[i].SiteId && originalBooking.StaffId == unsavedTasks[i].StaffId 
+                    && originalBooking.StartDate == unsavedTasks[i].StartDate && originalBooking.EndDate == unsavedTasks[i].EndDate)
+                {
+                    var index = i;
+                }
+            }          
+        }
+
+        /*
+        * if the timepicker's value has been changed, then change the style
+        */
+        $("body").on('DOMSubtreeModified', '#startTime', function () {
+            $("#startTime").css("background", "");
+            $("#editSaving").css("display", "block");
+        });
+
+        $("body").unbind(".edit-Record").on("click", "#editSaving", function () {
+            
+            var selectStartDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + $("#startTime").val());
+            var selectEndDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + $("#finishTime").val());
+
+            if (dataId != null)
+            {
+                var editBookDetail = {
+                    Id: dataId,
+                    SiteId: currentSiteId,
+                    StaffId: currentStaffId,
+                    StartDate: selectStartDate,
+                    EndDate: selectEndDate,
+                };
+            } else {
+                var previousBooking = {
+                    SiteId: currentSiteId,
+                    StaffId: currentStaffId,
+                    StartDate: selectStartDate,
+                    EndDate: selectEndDate,
+                }
+            }
+            
+
+            startTime.text($("#startTime").val());
+            finishTime.text($("#finishTime").val());
+
+            //if the plan is from database, send it to change controller, if not, change the unsavedTasks[]
+            if (dataId != null) {
+                editTasks.push(editBookDetail);
+            } else {
+                unsavedTasks.splice(index, 1);
+                unsavedTasks.push(previousBooking);
+            }
+
+            saveButtonDisplay();
+        });
+
+    });
+
+
+    
+
+
     // AMOR CHANGES
     //init start timepicker
     var intervalData = [       
@@ -179,7 +267,6 @@ $(document).ready(function () {
            { text: "30 minutes", value: 30 },
            { text: "45 minutes", value: 45 },
            { text: "1 hour", value: 60 }
-
     ];
 
     // create DropDownList from input HTML element
@@ -244,6 +331,19 @@ $(document).ready(function () {
         saveChanges();
     });
 
+    $("body").on("mouseenter", ".innerdiv", function () {
+        $(this).css("font-size", "11px");
+        $(this).children(".edit-Record").css({ "display": "inline" ,"font-size":"14px"});
+        $(this).children(".glyphicon-remove").css({ "display": "inline", "font-size": "14px"});        
+    });
+
+    $("body").on("mouseleave", ".innerdiv", function () {
+        $(this).css("font-size", "14px");
+        $(this).children(".edit-Record").css({ "display": "none"});
+        $(this).children(".glyphicon-remove").css({ "display": "none"});
+    });
+
+
     function drawTimePicker() {
         //change the interval of timepicker
         start = $("#startTime").kendoTimePicker({
@@ -263,38 +363,114 @@ $(document).ready(function () {
         end.min("8:00 AM");
         end.max("8:00 PM");
     }
-
 });
 
-function SaveProcess() {
-    if (unsavedTasks.length > 0 && unsavedTasks != null) {
-        $.ajax({
-            url: "/Home/SaveBooking",
-            datatype: "json",
-            data: { bookDetails: unsavedTasks },
-            type: "POST",
-        });
-    }
-    if (deleteTasks.length > 0 && deleteTasks != null) {
-        $.ajax({
-            url: "/Home/DeleteBooking",
-            datatype: "json",
-            data: { deleteDetails: deleteTasks },
-            type: "POST",
-        });
-    }
-    unsavedTasks = [];
-    deleteTasks = [];
-    alert("Saved Successfully");
-}
+
+
 
 //run the save process: add and remove widgets
 function saveChanges() {
-    var ask = confirm("Want to save the changes?");
-    if (ask == true) {
-        SaveProcess();       
-    }
+    myconfirm("Do you want to save changes to current week?").then(function () {
+
+        if (unsavedTasks.length > 0 && unsavedTasks != null) {
+            $.ajax({
+                url: "/Home/SaveBooking",
+                datatype: "json",
+                data: { bookDetails: unsavedTasks },
+                type: "POST",
+            });
+        }
+        if (deleteTasks.length > 0 && deleteTasks != null) {
+            $.ajax({
+                url: "/Home/DeleteBooking",
+                datatype: "json",
+                data: { deleteDetails: deleteTasks },
+                type: "POST",
+            });
+        }
+        if (editTasks.length > 0) {
+            $.ajax({
+                url: "/Home/UpdateBooking",
+                datatype: "json",
+                data: { editRoster: editTasks },
+                type: "POST",
+            });
+        }
+        unsavedTasks = [];
+        deleteTasks = [];
+        editTasks = [];
+
+        saveSuccess();
+    }, function () {
+        saveCancel();
+        unsavedTasks = [];
+        deleteTasks = [];
+        editTasks = [];
+
+        saveButtonDisplay();
+    });
 }
+
+
+function saveSuccess() {
+    notification.show({
+        message: "Save Successful"
+    }, "upload-success");
+}
+
+function saveCancel() {
+    notification.show({
+        message: "Saving Cancelled"
+    }, "error");
+}
+
+function myconfirm(content) {
+    return $("<div></div>").kendoConfirm({
+        title: "Save Changes",
+        content: content
+    }).data("kendoConfirm").open().result;
+}
+
+
+$(document).ready(function () {
+    notification = $("#notification").kendoNotification({
+        position: {
+            //pinned: true,
+            top: 5,
+            right: 30
+        },
+        autoHideAfter: 4000,
+        stacking: "down",
+        templates: [{
+            type: "info",
+            template: $("#bookedTemplate").html()
+        }, {
+            type: "error",
+            template: $("#cancelTemplate").html()
+        }, {
+            type: "upload-success",
+            template: $("#successTemplate").html()
+        }]
+    }).data("kendoNotification");
+});
+
+$(document).one("kendo:pageUnload", function () { if (notification) { notification.hide(); } });
+
+function alreadyBooked(msg) {
+    notification.show({
+        title: "Already Booked",
+        message: msg
+    }, "info");
+}
+
+function notFutureDate() {
+    notification.show({
+        message: "Scheduling only allowed for future dates"
+    }, "error");
+};
+
+
+
 
 
 /**
@@ -327,4 +503,13 @@ function timeDiffcalculate(startTime, finishTime) {
     hours += mins;
     var hourDiff = parseFloat(hours.toFixed(2));
     return hourDiff;
+}
+
+
+function saveButtonDisplay() {
+    if (unsavedTasks.length > 0 || editTasks.length > 0 || deleteTasks.length > 0) {
+        $("#saveButton").css("display", "block");
+    } else {
+        $("#saveButton").css("display", "none");
+    }
 }

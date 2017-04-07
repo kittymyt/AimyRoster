@@ -60,14 +60,32 @@
 	/*background:orange;*/
 }
 
+.glyphicon-remove{
+    margin-left: 5px;
+    display: none;
+}
+
+.edit-Record{
+    margin-left:5px;
+    display: none;
+}
+
+.edit-Record:hover,.glyphicon-remove:hover{
+    cursor:pointer;
+}
+
 .innerdiv{
 	background:#32C0C6;
 	display: block;
 	width:80%;
 	margin:auto;
 	margin-top:3px;
-	font-size:10px;
+	font-size:14px;
 	padding:5px 0 5px 0;
+}
+
+.small{
+    font-size:9px;
 }
 
 .active{

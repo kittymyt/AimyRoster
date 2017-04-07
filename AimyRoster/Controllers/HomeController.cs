@@ -81,7 +81,7 @@ namespace AimyRoster.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-
+        
         public ActionResult SaveBooking(TaskModelView[] bookDetails)
         {
             foreach (TaskModelView book in bookDetails)
@@ -99,6 +99,19 @@ namespace AimyRoster.Controllers
             return Json(null);
         }
 
+        public ActionResult updateBooking(TaskModelView[] editRoster)
+        {
+            foreach(TaskModelView edit in editRoster)
+            {
+                var oldRoster = db.StaffRoster.Find(edit.Id);
+
+                oldRoster.StartDate = Convert.ToDateTime(edit.StartDate);
+                oldRoster.EndDate = Convert.ToDateTime(edit.EndDate);
+            }                       
+
+            db.SaveChanges();
+            return Json(null);
+        }
 
         public ActionResult DeleteBooking(int[] deleteDetails)
         {

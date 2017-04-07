@@ -19,16 +19,13 @@
     $(".btnWeekSel").click(function () {
         if (unsavedTasks.length > 0 || deleteTasks.length > 0)
         {
-            var ask = confirm("Want to save the changes?");
-            if (ask == true) {
-                SaveProcess();
-
-                var tableMonday = new Date($(this).val());
-                updateDateTitle(tableMonday);
-                changeButtonColor();
-                updategrid(siteId);
-                $("#year").text($(this).attr("value").substr(11, 4));
-            }
+            saveChanges();
+            var tableMonday = new Date($(this).val());
+            updateDateTitle(tableMonday);
+            changeButtonColor();
+            updategrid(siteId);
+            $("#year").text($(this).attr("value").substr(11, 4));
+           
         } else {
             var tableMonday = new Date($(this).val());
             updateDateTitle(tableMonday);
@@ -37,6 +34,7 @@
             $("#year").text($(this).attr("value").substr(11, 4));
         }        
     });
+
 
 
     $("#btnNextWeek").click(function () {
@@ -52,30 +50,21 @@
     });
 
     $("#btnToday").click(function () {
-        if (unsavedTasks.length > 0 || deleteTasks.length > 0)
-        {
-            var ask = confirm("Want to save the changes?");
-            if (ask == true) {
-                SaveProcess();
-                viewingDate = getCurrentMonday();
-                updateWeekButtons();
-                initialDateLine();
-                changeButtonColor();
-                updategrid(siteId);
-                $("#year").text($("#btnWeekA").attr("value").substr(11, 4));
-            }
+        if (unsavedTasks.length > 0 || deleteTasks.length > 0) {
+            saveChanges();
+            updateTodayPage();
         } else {
-            viewingDate = getCurrentMonday();
-            updateWeekButtons();
-            initialDateLine();
-            changeButtonColor();
-            updategrid(siteId);
-            $("#year").text($("#btnWeekA").attr("value").substr(11, 4));
-        }      
+            updateTodayPage();
+        }
     });
 
-    function showYear() {
-
+    function updateTodayPage() {
+        viewingDate = getCurrentMonday();
+        updateWeekButtons();
+        initialDateLine();
+        changeButtonColor();
+        updategrid(siteId);
+        $("#year").text($("#btnWeekA").attr("value").substr(11, 4));
     }
 
 
@@ -212,11 +201,11 @@
             var today = new Date();        
             if (thisMonday.getFullYear() == today.getFullYear() && thisMonday.getMonth() == today.getMonth() && thisMonday.getDate() == today.getDate())
             {              
-                $(this).addClass("todayHeader")
+                $(this).addClass("todayHeader");
 
             } else
             {
-                $(this).removeClass("todayHeader")
+                $(this).removeClass("todayHeader");
             }
 
             $(this).html(result);
@@ -257,7 +246,7 @@
         var startDate = $('th:eq(0)').data("date");
         var readStartDate = (startDate.getFullYear() + "-" + (startDate.getMonth() + 1) + "-" + startDate.getDate());
         var endDate = $('th:eq(6)').data("date");
-        var readEndDate = (endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + endDate.getDate());
+        var readEndDate = (endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + (endDate.getDate()+1));
 
         var newgrid = $("#scheduler").data("kendoGrid");
         newgrid.setDataSource(gridData);
