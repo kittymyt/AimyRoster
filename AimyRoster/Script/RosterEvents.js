@@ -1,12 +1,11 @@
 ﻿var unsavedTasks = [];
 var deleteTasks = [];
-var editTasks = [];
 
 $(document).ready(function () {
 
     var start;
     var end;
-
+    var editState = false;
 
     $("body").on("click", ".glyphicon-plus", function () {
 
@@ -17,7 +16,7 @@ $(document).ready(function () {
         if (!finishTime)
             finishTime = '05:00 PM';
 
-      
+
         //get the widget information
         var currentColumnIndex = $(this).closest("td").index();
         var selectedRow = $(this).closest('tr').find('div[class="add-roster-wrapper"]');
@@ -48,23 +47,7 @@ $(document).ready(function () {
                 var result = response;
                 if (result == "") {
                     var overlapTask = conflictCheck(staffId, columnDate, selectStartDate, selectEndDate);
-                    //var overlapTask = unsavedTasks.some(function (search) {
-                    //    console.table(search)
 
-                    //    var arrStartDate = search.StartDate;
-                    //    var arrStartDateTime = new Date(arrStartDate);
-                    //    var arrDay = arrStartDateTime.getDate();
-                    //    var selectStartDateTime = new Date(selectStartDate);
-
-                    //    var arrEndDate = search.EndDate;
-                    //    var arrEndDateTime = new Date(arrEndDate);
-                    //    var selectEndDateTime = new Date(selectEndDate);
-
-                    //    return (
-                    //             ((search.StaffId == staffId) && (arrDay == columnDate.getDate()))
-                    //            && !((arrEndDateTime <= selectStartDateTime) || (selectEndDateTime <= arrStartDateTime))
-                    //        )
-                    //});
                     if (overlapTask == true) {
                         alert('Warning: Staff is already booked for selected date & time');
                     } else {
@@ -85,7 +68,36 @@ $(document).ready(function () {
                     }
                 }
                 else {
-                    alert('Warning: Staff is already booked for selected date & time');
+                    for (var i = 0; i < result.length; i++) {
+                        var deleteIndex = $.inArray((result[i].Id).toFixed(), deleteTasks);
+                        if (deleteIndex != -1) {
+                            result.splice(deleteIndex, 1);
+                        }
+                    }
+                    if (result.length > 0) {
+                        alert('Warning: Staff is already booked for selected date & time');
+                    } else {
+                        var overlapTask = conflictCheck(staffId, columnDate, selectStartDate, selectEndDate);
+
+                        if (overlapTask == true) {
+                            alert('Warning: Staff is already booked for selected date & time');
+                        } else {
+                            var div =
+                                $("<div class='innerdiv'><span class='planStart'>" + startTime + "</span> - <span class='planEnd'>" + finishTime + "</span><div class='glyphicon glyphicon-pencil remove-staff edit-Record'></div>" + "<div class='glyphicon glyphicon-remove'></div></div>");
+                            var selectedDiv = $('#' + selectedCell);
+
+                            //calculate the week time of a staff
+                            var hourDiff = timeDiffcalculate(startTime, finishTime);
+
+                            var newHours = parseFloat(existingHours + hourDiff).toFixed(2);
+                            $("#scheduler tbody").find(dataStaffId).html(newHours);
+
+                            selectedDiv.append(div);
+                            unsavedTasks.push(bookDetail);
+
+                            saveButtonDisplay();
+                        }
+                    }
                 };
             }
         });
@@ -122,6 +134,7 @@ $(document).ready(function () {
         var staffId = $(this).closest("td").find(".staffTemplate").attr("data-value");
         var dataStaffId = "[data-staffid=" + staffId + "]";
         var existingHours = parseFloat($('div' + dataStaffId).text());
+        var dataId = $(this).parent().attr("data-id");
 
         var hoursArray = $(this).parent().text().split(" - ");
 
@@ -133,6 +146,7 @@ $(document).ready(function () {
         var selectEndDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + finishTime);
 
         var bookDetail = {
+            DataId: dataId,
             SiteId: siteId,
             StaffId: staffId,
             StartDate: selectStartDate,
@@ -142,127 +156,388 @@ $(document).ready(function () {
         //get the widget id so that we can delete it in database
         var widgetId = $(this).parent().attr("data-id");
 
-        if (widgetId != null)
-        {
-            deleteTasks.push(widgetId);
+        if (widgetId != null) {
+            if ($.inArray(widgetId, deleteTasks) == -1) {
+                deleteTasks.push(widgetId);
+            }
+
+            for (var k = 0; k < unsavedTasks.length; k++) {
+                if (widgetId == unsavedTasks[k].Id) {
+                    unsavedTasks.splice(k, 1);
+                }
+            }
+
             saveButtonDisplay();
+
         } else {
-            for(var i=0;i<unsavedTasks.length;i++)
-            {
-                if(bookDetail.SiteId == unsavedTasks[i].SiteId && bookDetail.StaffId == unsavedTasks[i].StaffId 
-                    && bookDetail.StartDate == unsavedTasks[i].StartDate && bookDetail.EndDate == unsavedTasks[i].EndDate)
-                {
+            for (var i = 0; i < unsavedTasks.length; i++) {
+                if (bookDetail.SiteId == unsavedTasks[i].SiteId && bookDetail.StaffId == unsavedTasks[i].StaffId
+                    && bookDetail.StartDate == unsavedTasks[i].StartDate && bookDetail.EndDate == unsavedTasks[i].EndDate) {
                     unsavedTasks.splice(i, 1);
                     saveButtonDisplay();
                 }
             }
         }
 
-      
+
         var hourDiff = timeDiffcalculate(startTime, finishTime);
         var newHours = parseFloat(existingHours - hourDiff).toFixed(2);
 
         $("#scheduler tbody").find(dataStaffId).html(newHours);
 
-        $(this).parent().remove();        
+        $(this).parent().remove();
 
-        
+
     });
 
-    
+
     $("body").on("click", ".edit-Record", function () {
+        //set the background color of the selected widget
+        var widget = $(this).parent();
+        $(".innerdiv").css("background", "#32C0C6");
+        widget.css("background-color", "coral");
+        $("#cancelEdit").css("display", "block");
+
         $("#startTime").css("background", "steelblue");
         var dataId = $(this).parent().attr("data-id");
 
-        $("#startTime").val($(this).siblings(".planStart").text());
-        $("#finishTime").val($(this).siblings(".planEnd").text());
         
-        var startTime = $(this).siblings(".planStart");
-        var finishTime = $(this).siblings(".planEnd");
+
+        var startTimePicker = $("#startTime").data("kendoTimePicker");
+        var finishTimePicker = $("#finishTime").data("kendoTimePicker");
+
+        
+        startTimePicker.value($(this).siblings(".planStart").text());
+        console.log($(this).siblings(".planStart").text());
+
+
+        var endTime = start.value();
+        endTime.setMinutes(endTime.getMinutes() + parseInt(interval.value()));
+        end.min(endTime);
+
+        console.log($(this).siblings(".planEnd").text());
+        finishTimePicker.value($(this).siblings(".planEnd").text());
+        
+        
+        
+
+        var editStart = $(this).siblings(".planStart");
+        var editEnd = $(this).siblings(".planEnd");
 
         var currentSiteId = $('#sites').val();
         var currentStaffId = $(this).parents().siblings(".staffTemplate").attr("data-value");
         var currentColumnIndex = $(this).closest("td").index();
         var columnDate = $('th:eq(' + currentColumnIndex + ')').data("date");
-        var originalStartDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + startTime.text());
-        var originalEndDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + finishTime.text());
-
+        var originalStartDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + editStart.text());
+        var originalEndDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + editEnd.text());
         //var existingHours = parseFloat($('div' + dataStaffId).text());
 
+        var oldTimeDiff = timeDiffcalculate(editStart.text(), editEnd.text());
+        var staffId = $(this).closest("td").find(".staffTemplate").attr("data-value");
+        var dataStaffId = "[data-staffid=" + staffId + "]";
+        var existingHours = parseFloat($('div' + dataStaffId).text());        
+
         var originalBooking = {
+            DataId: dataId,
             SiteId: currentSiteId,
             StaffId: currentStaffId,
             StartDate: originalStartDate,
             EndDate: originalEndDate,
-        }
+        };
 
         //find the index of the unsave plans in the unsavedTasks
-        if (dataId == null) {
-            for (var i = 0; i < unsavedTasks.length; i++)
-            {
-                if(originalBooking.SiteId == unsavedTasks[i].SiteId && originalBooking.StaffId == unsavedTasks[i].StaffId 
-                    && originalBooking.StartDate == unsavedTasks[i].StartDate && originalBooking.EndDate == unsavedTasks[i].EndDate)
-                {
-                    var index = i;
-                }
-            }          
+        //if (dataId == null) {
+        for (var i = 0; i < unsavedTasks.length; i++) {
+            if (originalBooking.SiteId == unsavedTasks[i].SiteId && originalBooking.StaffId == unsavedTasks[i].StaffId
+                && originalBooking.StartDate == unsavedTasks[i].StartDate && originalBooking.EndDate == unsavedTasks[i].EndDate) {
+                var index = i;
+            }
         }
+        // }
+
+        editState = true;
 
         /*
         * if the timepicker's value has been changed, then change the style
         */
-        $("body").on('DOMSubtreeModified', '#startTime', function () {
-            $("#startTime").css("background", "");
-            $("#editSaving").css("display", "block");
-        });
 
-        $("body").unbind(".edit-Record").on("click", "#editSaving", function () {
-            
-            var selectStartDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + $("#startTime").val());
-            var selectEndDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + $("#finishTime").val());
 
-            if (dataId != null)
-            {
-                var editBookDetail = {
-                    Id: dataId,
-                    SiteId: currentSiteId,
-                    StaffId: currentStaffId,
-                    StartDate: selectStartDate,
-                    EndDate: selectEndDate,
-                };
+        $("#editSaving").css("display", "none");
+        
+
+        $("#editSaving").unbind("click").click(function () {
+
+            if ($("#startTime").data("kendoTimePicker").value() == null || $("#finishTime").data("kendoTimePicker").value() == null) {
+                alert("Please input the time in right format");
             } else {
-                var previousBooking = {
-                    SiteId: currentSiteId,
-                    StaffId: currentStaffId,
-                    StartDate: selectStartDate,
-                    EndDate: selectEndDate,
+                var selectStartDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + $("#startTime").val());
+                var selectEndDate = (columnDate.getFullYear() + "-" + (columnDate.getMonth() + 1) + "-" + columnDate.getDate() + " " + $("#finishTime").val());
+
+                var newTimeDiff = timeDiffcalculate($("#startTime").val(), $("#finishTime").val());
+
+
+                if (dataId == null) {
+                    $.ajax({
+                        url: "/Home/ReadExistingTask",
+                        data: { optStaffId: currentStaffId, optStartDate: selectStartDate, optEndDate: selectEndDate },
+                        datatype: "json",
+                        async: false,
+                        type: "GET",
+                        success: function (response) {
+                            var result = response;
+                            if (result == "") {
+                                unsavedTasks.splice(index, 1);
+                                var overlapTask = conflictCheck(currentStaffId, columnDate, selectStartDate, selectEndDate);
+
+                                if (!overlapTask) {
+
+                                    var previousBooking = {
+                                        DataId: dataId,
+                                        SiteId: currentSiteId,
+                                        StaffId: currentStaffId,
+                                        StartDate: selectStartDate,
+                                        EndDate: selectEndDate,
+                                    }
+
+                                    editStart.text($("#startTime").val());
+                                    editEnd.text($("#finishTime").val());
+
+
+                                    unsavedTasks.push(previousBooking);
+                                    existingHours = existingHours - oldTimeDiff + newTimeDiff;
+                                    $("#scheduler tbody").find(dataStaffId).html(existingHours.toFixed(2));
+
+                                    $("#editSaving").css("display", "none");
+                                    widget.css("background-color", "#32c0c6");
+                                    $("#cancelEdit").css("display", "none");
+                                    editState = false;
+                                    saveButtonDisplay();
+                                } else {
+                                    alert('Warning: Staff is already booked for selected date & time');
+                                    unsavedTasks.push(originalBooking);
+                                    $("#editSaving").css("display", "none");
+                                    $("#cancelEdit").css("display", "none");
+                                    widget.css("background", "#32c0c6");
+                                }
+                            } else {
+
+                                for (var i = 0; i < result.length; i++) {
+                                    var deleteIndex = $.inArray((result[i].Id).toFixed(), deleteTasks);
+                                    if (deleteIndex != -1) {
+                                        result.splice(deleteIndex, 1);
+                                    }
+                                }
+
+                                if (result.length > 0) {
+                                    alert('Warning: Staff is already booked for selected date & time');
+                                    $("#editSaving").css("display", "none");
+                                    $("#cancelEdit").css("display", "none");
+                                    widget.css("background", "#32c0c6");
+                                } else {
+                                    var overlapTask = conflictCheck(staffId, columnDate, selectStartDate, selectEndDate);
+
+                                    if (overlapTask == true) {
+                                        alert('Warning: Staff is already booked for selected date & time');
+                                        $("#editSaving").css("display", "none");
+                                        $("#cancelEdit").css("display", "none");
+                                        widget.css("background", "#32c0c6");
+                                    } else {
+
+                                        var previousBooking = {
+                                            DataId: dataId,
+                                            SiteId: currentSiteId,
+                                            StaffId: currentStaffId,
+                                            StartDate: selectStartDate,
+                                            EndDate: selectEndDate,
+                                        }
+
+                                        editStart.text($("#startTime").val());
+                                        editEnd.text($("#finishTime").val());
+
+
+                                        unsavedTasks.push(previousBooking);
+                                        existingHours = existingHours - oldTimeDiff + newTimeDiff;
+                                        $("#scheduler tbody").find(dataStaffId).html(existingHours.toFixed(2));
+                                        console.log("existingHours after change: " + existingHours);
+
+                                        $("#editSaving").css("display", "none");
+                                        $("#cancelEdit").css("display", "none");
+                                        widget.css("background", "#32c0c6");
+                                        editState = false;
+                                        saveButtonDisplay();
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    $.ajax({
+                        url: "/Home/EditRepeatCheck",
+                        data: { optStaffId: currentStaffId, optStartDate: selectStartDate, optEndDate: selectEndDate, dataId: dataId },
+                        datatype: "json",
+                        async: false,
+                        type: "GET",
+                        success: function (response) {
+                            var result = response;
+                            if (result == "") {
+
+                                var unsavedContainOrNot = unsavedTasks.some(function (search) {
+                                    for (var i = 0; i < unsavedTasks.length; i++) {
+                                        return search.Id == dataId;
+                                    }
+                                });
+
+                                if (unsavedContainOrNot) {
+                                    unsavedTasks.splice(index, 1);
+                                }
+
+                                var overlapTask = conflictCheck(currentStaffId, columnDate, selectStartDate, selectEndDate);
+
+                                if (!overlapTask) {
+
+                                    var editBookDetail = {
+                                        Id: dataId,
+                                        SiteId: currentSiteId,
+                                        StaffId: currentStaffId,
+                                        StartDate: selectStartDate,
+                                        EndDate: selectEndDate,
+                                    };
+
+                                    editStart.text($("#startTime").val());
+                                    editEnd.text($("#finishTime").val());
+
+
+
+                                    var deleteContainOrNot = deleteTasks.some(function (search) {
+                                        console.log(search);
+                                        return search == dataId;
+                                    });
+
+
+                                    unsavedTasks.push(editBookDetail);
+                                    saveButtonDisplay();
+
+
+                                    if (!deleteContainOrNot) {
+                                        deleteTasks.push(dataId);
+                                        saveButtonDisplay();
+                                    }
+
+                                    existingHours = existingHours - oldTimeDiff + newTimeDiff;
+                                    $("#scheduler tbody").find(dataStaffId).html(existingHours.toFixed(2));
+                                    console.log("existingHours after change: " + existingHours);
+                                    $("#editSaving").css("display", "none");
+                                    $("#cancelEdit").css("display", "none");
+                                    widget.css("background-color", "#32c0c6");
+                                    editState = false;
+                                    saveButtonDisplay();
+                                } else {
+                                    alert('Warning: Staff is already booked for selected date & time');
+                                    $("#editSaving").css("display", "none");
+                                    $("#cancelEdit").css("display", "none");
+                                    widget.css("background", "#32c0c6");
+                                }
+                            } else {
+
+                                for (var i = 0; i < result.length; i++) {
+                                    var deleteIndex = $.inArray((result[i].Id).toFixed(), deleteTasks);
+                                    if (deleteIndex != -1) {
+                                        result.splice(deleteIndex, 1);
+                                    }
+                                }
+
+                                if (result.length > 0) {
+                                    alert('Warning: Staff is already booked for selected date & time');
+                                    $("#editSaving").css("display", "none");
+                                    $("#cancelEdit").css("display", "none");
+                                    widget.css("background", "#32c0c6");
+                                } else {
+                                    var unsavedContainOrNot = unsavedTasks.some(function (search) {
+                                        for (var i = 0; i < unsavedTasks.length; i++) {
+                                            return search.DataId == dataId;
+                                        }
+                                    });
+
+                                    if (unsavedContainOrNot) {
+                                        unsavedTasks.splice(index, 1);
+                                    }
+
+                                    var overlapTask = conflictCheck(currentStaffId, columnDate, selectStartDate, selectEndDate);
+
+                                    if (!overlapTask) {
+
+                                        var editBookDetail = {
+                                            Id: dataId,
+                                            SiteId: currentSiteId,
+                                            StaffId: currentStaffId,
+                                            StartDate: selectStartDate,
+                                            EndDate: selectEndDate,
+                                        };
+
+                                        editStart.text($("#startTime").val());
+                                        editEnd.text($("#finishTime").val());
+
+
+
+                                        var deleteContainOrNot = deleteTasks.some(function (search) {
+                                            console.log(search);
+                                            return search == dataId;
+                                        });
+
+
+                                        unsavedTasks.push(editBookDetail);
+                                        saveButtonDisplay();
+
+
+                                        if (!deleteContainOrNot) {
+                                            deleteTasks.push(dataId);
+                                            saveButtonDisplay();
+                                        }
+
+                                        existingHours = existingHours - oldTimeDiff + newTimeDiff;
+                                        $("#scheduler tbody").find(dataStaffId).html(existingHours.toFixed(2));
+                                        console.log("existingHours after change: " + existingHours);
+                                        $("#editSaving").css("display", "none");
+                                        $("#cancelEdit").css("display", "none");
+                                        widget.css("background", "#32c0c6");
+                                        editState = false;
+                                        saveButtonDisplay();
+
+                                    }
+                                }
+                            }
+                        }
+                    });
                 }
             }
+
             
-
-            startTime.text($("#startTime").val());
-            finishTime.text($("#finishTime").val());
-
-            //if the plan is from database, send it to change controller, if not, change the unsavedTasks[]
-            if (dataId != null) {
-                editTasks.push(editBookDetail);
-            } else {
-                unsavedTasks.splice(index, 1);
-                unsavedTasks.push(previousBooking);
-            }
-
-            saveButtonDisplay();
         });
 
     });
 
+    $("#startTime,#finishTime").on('change', function () {
+        if (editState) {
+            $("#startTime").css("background", "");
+            $("#editSaving").css("display", "block");
+        }
+        editState = false;
+    });
 
-    
+    $("#cancelEdit").click(function () {
+        $(this).css("display", "none");
+        $("#startTime").css("background", "");
+        $(".innerdiv").css("background-color", "#32c0c6");
+        $("#editSaving").css("display", "none");
+        editState = false;
+    });
+
+
 
 
     // AMOR CHANGES
     //init start timepicker
-    var intervalData = [       
+    var intervalData = [
            { text: "15 minutes", value: 15 },
            { text: "30 minutes", value: 30 },
            { text: "45 minutes", value: 45 },
@@ -304,46 +579,25 @@ $(document).ready(function () {
 
     drawTimePicker();
 
-    function startChange() {
-        //debugger;
-        var startTime = start.value();
-        var endTime = end.value();       
-
-        if (startTime) {
-            endTime = start.value();
-
-            endTime.setMinutes(endTime.getMinutes()+parseInt(interval.value()));
-            end.min(endTime);
-            end.value(endTime);
-        }
-    }
-
-    function changeInterval() {
-        $("#startTime").val('');
-        $("#finishTime").val('');
-        drawTimePicker();
-        startChange();      
-    }
-
-    
     //save the object array back to database
-    $("#saveButton").click(function(e){
+    $("#saveButton").click(function (e) {
         saveChanges();
     });
 
     $("body").on("mouseenter", ".innerdiv", function () {
         $(this).css("font-size", "11px");
-        $(this).children(".edit-Record").css({ "display": "inline" ,"font-size":"14px"});
-        $(this).children(".glyphicon-remove").css({ "display": "inline", "font-size": "14px"});        
+        $(this).children(".edit-Record").css({ "display": "inline", "font-size": "14px" });
+        $(this).children(".glyphicon-remove").css({ "display": "inline", "font-size": "14px" });
     });
 
     $("body").on("mouseleave", ".innerdiv", function () {
         $(this).css("font-size", "14px");
-        $(this).children(".edit-Record").css({ "display": "none"});
-        $(this).children(".glyphicon-remove").css({ "display": "none"});
+        $(this).children(".edit-Record").css({ "display": "none" });
+        $(this).children(".glyphicon-remove").css({ "display": "none" });
     });
 
-
+    
+    //three functions behind are the change of timepicker
     function drawTimePicker() {
         //change the interval of timepicker
         start = $("#startTime").kendoTimePicker({
@@ -363,6 +617,29 @@ $(document).ready(function () {
         end.min("8:00 AM");
         end.max("8:00 PM");
     }
+
+    function startChange() {
+        //debugger;
+        var startTime = start.value();
+        var endTime = end.value();
+
+        if (startTime) {
+            endTime = start.value();
+
+            endTime.setMinutes(endTime.getMinutes() + parseInt(interval.value()));
+            end.min(endTime);
+            end.value(endTime);
+        }
+    }
+
+    function changeInterval() {
+        $("#startTime").val('');
+        $("#finishTime").val('');
+        drawTimePicker();
+        startChange();
+    }
+
+
 });
 
 
@@ -388,25 +665,16 @@ function saveChanges() {
                 type: "POST",
             });
         }
-        if (editTasks.length > 0) {
-            $.ajax({
-                url: "/Home/UpdateBooking",
-                datatype: "json",
-                data: { editRoster: editTasks },
-                type: "POST",
-            });
-        }
+
         unsavedTasks = [];
         deleteTasks = [];
-        editTasks = [];
+        saveButtonDisplay();
 
         saveSuccess();
     }, function () {
         saveCancel();
         unsavedTasks = [];
         deleteTasks = [];
-        editTasks = [];
-
         saveButtonDisplay();
     });
 }
@@ -507,7 +775,7 @@ function timeDiffcalculate(startTime, finishTime) {
 
 
 function saveButtonDisplay() {
-    if (unsavedTasks.length > 0 || editTasks.length > 0 || deleteTasks.length > 0) {
+    if (unsavedTasks.length > 0 || deleteTasks.length > 0) {
         $("#saveButton").css("display", "block");
     } else {
         $("#saveButton").css("display", "none");

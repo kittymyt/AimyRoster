@@ -64,12 +64,32 @@ namespace AimyRoster.Controllers
 
         public ActionResult ReadExistingTask(int optStaffId, DateTime optStartDate, DateTime optEndDate)
         {
+                var result =
+               (from sr in db.StaffRoster
+                join si in db.Sites on sr.SiteId equals si.Id
+                join st in db.Staffs on sr.StaffId equals st.Id
+                where (
+                       (sr.StaffId == optStaffId) &&
+                       !((sr.EndDate <= optStartDate) || (optEndDate <= sr.StartDate))
+                       )
+                select new TaskModelView
+                {
+                    Id = sr.Id,
+
+                }).AsEnumerable();
+
+                return Json(result, JsonRequestBehavior.AllowGet);
+                     
+        }
+
+        public ActionResult EditRepeatCheck(int optStaffId, DateTime optStartDate, DateTime optEndDate,int dataId)
+        {
             var result =
                 (from sr in db.StaffRoster
                  join si in db.Sites on sr.SiteId equals si.Id
                  join st in db.Staffs on sr.StaffId equals st.Id
                  where (
-                        (sr.StaffId == optStaffId) &&
+                        (sr.StaffId == optStaffId) && (sr.Id != dataId) && 
                         !((sr.EndDate <= optStartDate) || (optEndDate <= sr.StartDate))
                         )
                  select new TaskModelView
@@ -81,37 +101,33 @@ namespace AimyRoster.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        
+
         public ActionResult SaveBooking(TaskModelView[] bookDetails)
         {
             foreach (TaskModelView book in bookDetails)
             {
-                var thisBook = new StaffRoster();
-                thisBook.SiteId = book.SiteId;
-                thisBook.StaffId = book.StaffId;
-                thisBook.StartDate = Convert.ToDateTime(book.StartDate);
-                thisBook.EndDate = Convert.ToDateTime(book.EndDate);
+                //if(book.Id.Equals(null))
+                //{
+                    var thisBook = new StaffRoster();
+                    thisBook.SiteId = book.SiteId;
+                    thisBook.StaffId = book.StaffId;
+                    thisBook.StartDate = Convert.ToDateTime(book.StartDate);
+                    thisBook.EndDate = Convert.ToDateTime(book.EndDate);
+
+                    db.StaffRoster.Add(thisBook);
+
+                //}else{
+                //    var oldRoster = db.StaffRoster.Find(book.Id);
+
+                //    oldRoster.StartDate = Convert.ToDateTime(book.StartDate);
+                //    oldRoster.EndDate = Convert.ToDateTime(book.EndDate);
+                //}
                 
-                db.StaffRoster.Add(thisBook);
             }
-            db.SaveChanges();
-            
+            db.SaveChanges();           
             return Json(null);
         }
 
-        public ActionResult updateBooking(TaskModelView[] editRoster)
-        {
-            foreach(TaskModelView edit in editRoster)
-            {
-                var oldRoster = db.StaffRoster.Find(edit.Id);
-
-                oldRoster.StartDate = Convert.ToDateTime(edit.StartDate);
-                oldRoster.EndDate = Convert.ToDateTime(edit.EndDate);
-            }                       
-
-            db.SaveChanges();
-            return Json(null);
-        }
 
         public ActionResult DeleteBooking(int[] deleteDetails)
         {
