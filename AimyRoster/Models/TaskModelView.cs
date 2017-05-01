@@ -13,5 +13,8 @@ namespace AimyRoster.Models
         public string StartDate { get; set; }
         public string EndDate { get; set; }
         public double? SalaryCost { get; set; }
+        public string SiteName { get; set; }
+        public string RefName { get; set; }
+        public int? RefId { get; set; }
     }
 }

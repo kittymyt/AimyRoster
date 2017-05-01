@@ -20,6 +20,7 @@
     @*<script src="https://code.jquery.com/jquery-1.12.3.js" charset="utf-8"></script>*@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" charset="utf-8"></script>
     <script src="http://kendo.cdn.telerik.com/2017.1.118/js/kendo.all.min.js"></script>
+    <script src="http://kendo.cdn.telerik.com/2017.1.118/js/kendo.web.min.js"></script>
     <script src="http://kendo.cdn.telerik.com/2017.1.118/js/jszip.min.js"></script>
     <script src="http://kendo.cdn.telerik.com/2017.1.118/js/angular.min.js"></script>
 
@@ -33,13 +34,12 @@
 </head>
 <body>
     <div class="container-fluid">
-        <div class="row">
+        <div class="row" id="window">
             <span id="notification" style="display:none;"></span>
             <div class="col-sm-2" id="left-panel">
                 <div class="demo-section k-content">
                     <h4>Sites</h4>
                     <input id="sites" style="width: 100%;" />
-                    <p id="warning" style="display:none;">Please save the changes.</p>
                     <hr>
                     <h4>Time Interval</h4>
                     <input id="timeinterval" style="width: 100%;" />
@@ -67,18 +67,19 @@
                         <span class="glyphicon glyphicon-chevron-right"></span>
                     </button>
                     <span id="year" style="margin-left: 10px">Year</span>
+                    <div style="display:inline;margin-left: 10px;width:300px">
+                        <b>Filter : </b><input id="comboFilter" style="width:300px" />
+                    </div>
                     <div class="inline pull-right">
                         <button type="button" class="btn btn-info" id="saveButton" style="display:none;">Save Changes</button>
                     </div>
                 </div>
                 <div id="scheduler"></div>
-
-
+                
             </div>
         </div>
     </div>
 
-    
 
 
     <script id="template" type="text/x-kendo-template">
@@ -151,7 +152,7 @@
 
     <script id="bookedTemplate" type="text/x-kendo-template">
         <div class="new-mail">
-            @*<img src="/Images/Library_1-32.png" />*@
+            <img src="/Images/Library_1-32.png" />
             <h3>#= title #</h3>
             <p>#= message #</p>
         </div>
@@ -159,23 +160,27 @@
 
     <script id="successTemplate" type="text/x-kendo-template">
         <div class="upload-success">
-            @*<img src="/Images/678134-sign-check-32.png" />*@
+            <img src="/Images/678134-sign-check-32.png" />
             <h3>#= message #</h3>
         </div>
     </script>
 
     <script id="cancelTemplate" type="text/x-kendo-template">
         <div class="wrong-pass">
-            @*<img src="/Images/cancel-2-32.png" />*@
+            <img src="/Images/cancel-2-32.png" />
             <h3>#= message #</h3>
         </div>
     </script>
 
+    <script id="noDataTemplate" type="text/x-kendo-tmpl">
+        <div>
+            No data found. Do you want to add new Reference - '#: instance.filterInput.val() #' ?
+        </div>
+        <br />
+        <button class="k-button" onclick="addNew('#: instance.element[0].id #', '#: instance.filterInput.val() #')">Add new reference</button>
+    </script>
 
     <script src="~/Script/RosterEvents.js" charset="utf-8"></script>
-    
-
-    
 
 
 </body>

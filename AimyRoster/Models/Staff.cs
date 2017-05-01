@@ -12,12 +12,12 @@ namespace AimyRoster.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class Sites
+    public partial class Staff
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Sites()
+        public Staff()
         {
-            this.Staffs = new HashSet<Staffs>();
+            this.StaffAccess = new HashSet<StaffAccess>();
             this.StaffRoster = new HashSet<StaffRoster>();
         }
     
@@ -25,7 +25,7 @@ namespace AimyRoster.Models
         public string Name { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Staffs> Staffs { get; set; }
+        public virtual ICollection<StaffAccess> StaffAccess { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<StaffRoster> StaffRoster { get; set; }
     }

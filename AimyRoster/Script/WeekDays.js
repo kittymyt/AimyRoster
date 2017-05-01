@@ -11,30 +11,41 @@
     initialDateLine();
 
     updateWeekButtons();
-    $("#year").text($("#btnWeekA").attr("value").substr(11, 4));
 
     changeButtonColor();
 
 
     $(".btnWeekSel").click(function () {
-        if (unsavedTasks.length > 0 || deleteTasks.length > 0)
-        {
-            saveChanges();
-            var tableMonday = new Date($(this).val());
-            updateDateTitle(tableMonday);
-            changeButtonColor();
+
+        //if (unsavedTasks.length > 0 || deleteTasks.length > 0) {
+        //    saveChanges();
+        //}
+
+        var tableMonday = new Date($(this).val());
+
+        updateDateTitle(tableMonday);
+        changeButtonColor();
+
+        filter = $('#comboFilter').val();
+        if ((filter == undefined) || (filter == "")) {
             updategrid(siteId);
-            $("#year").text($(this).attr("value").substr(11, 4));
-           
-        } else {
-            var tableMonday = new Date($(this).val());
-            updateDateTitle(tableMonday);
-            changeButtonColor();
-            updategrid(siteId);
-            $("#year").text($(this).attr("value").substr(11, 4));
-        }        
+        }
+        else {
+            switch (filterSource) {
+                case "Staff":
+                    filterGrid(siteId, filterId)
+                    return;
+                case "Reference":
+                    updategrid(siteId)
+                    return;
+            }
+        }
     });
 
+    //renew the th based on the week user select
+    //$("#btnWeekA,#btnWeekB,#btnWeekC").click(function () {
+        
+    //});
 
 
     $("#btnNextWeek").click(function () {
@@ -50,22 +61,30 @@
     });
 
     $("#btnToday").click(function () {
-        if (unsavedTasks.length > 0 || deleteTasks.length > 0) {
-            saveChanges();
-            updateTodayPage();
-        } else {
-            updateTodayPage();
+        viewingDate = getCurrentMonday()
+        updateWeekButtons();
+
+        initialDateLine();
+
+        changeButtonColor();
+
+        filter = $('#comboFilter').val();
+        if ((filter == undefined) || (filter == "")) {
+            updategrid(siteId);
+        }
+        else {
+            switch (filterSource) {
+                case "Staff":
+                    filterGrid(siteId, filterId)
+                    return;
+                case "Reference":
+                    updategrid(siteId)
+                    return;
+            }
         }
     });
 
-    function updateTodayPage() {
-        viewingDate = getCurrentMonday();
-        updateWeekButtons();
-        initialDateLine();
-        changeButtonColor();
-        updategrid(siteId);
-        $("#year").text($("#btnWeekA").attr("value").substr(11, 4));
-    }
+    
 
 
     function changeButtonColor() {
@@ -201,11 +220,11 @@
             var today = new Date();        
             if (thisMonday.getFullYear() == today.getFullYear() && thisMonday.getMonth() == today.getMonth() && thisMonday.getDate() == today.getDate())
             {              
-                $(this).addClass("todayHeader");
+                $(this).addClass("todayHeader")
 
             } else
             {
-                $(this).removeClass("todayHeader");
+                $(this).removeClass("todayHeader")
             }
 
             $(this).html(result);
@@ -214,43 +233,51 @@
             
         });
     }
+});
 
-    //update grid function
-    function updategrid(siteId)
-    {
-        gridData = new kendo.data.DataSource({
-            transport: {
-                read: function (options) {
-                    $.ajax({
-                        url: "/Home/GetStaff",
-                        data: { getSiteId: siteId },
-                        dataType: "json",
-                        success: function (response) {
-                            var result = response;
-                            result.forEach(function (value) {
-                                value.Mon = $("th:eq(0)").html().replace(/\s+/g, '');
-                                value.Tue = $("th:eq(1)").html().replace(/\s+/g, '');
-                                value.Wed = $("th:eq(2)").html().replace(/\s+/g, '');
-                                value.Thu = $("th:eq(3)").html().replace(/\s+/g, '');
-                                value.Fri = $("th:eq(4)").html().replace(/\s+/g, '');
-                                value.Sat = $("th:eq(5)").html().replace(/\s+/g, '');
-                                value.Sun = $("th:eq(6)").html().replace(/\s+/g, '');
-                            });
-                            options.success(result)
-                        }
-                    })
-                }
-            },
-        });
+//update grid function
+function updategrid(siteId) {
+    gridData = new kendo.data.DataSource({
+        transport: {
+            read: function (options) {
+                $.ajax({
+                    url: "/Home/GetStaff",
+                    data: { getSiteId: siteId },
+                    dataType: "json",
+                    success: function (response) {
+                        var result = response;
+                        result.forEach(function (value) {
+                            value.Mon = $("th:eq(0)").html().replace(/\s+/g, '');
+                            value.Tue = $("th:eq(1)").html().replace(/\s+/g, '');
+                            value.Wed = $("th:eq(2)").html().replace(/\s+/g, '');
+                            value.Thu = $("th:eq(3)").html().replace(/\s+/g, '');
+                            value.Fri = $("th:eq(4)").html().replace(/\s+/g, '');
+                            value.Sat = $("th:eq(5)").html().replace(/\s+/g, '');
+                            value.Sun = $("th:eq(6)").html().replace(/\s+/g, '');
+                        });
+                        options.success(result)
+                    }
+                })
+            }
+        },
+    });
 
-        var startDate = $('th:eq(0)').data("date");
-        var readStartDate = (startDate.getFullYear() + "-" + (startDate.getMonth() + 1) + "-" + startDate.getDate());
-        var endDate = $('th:eq(6)').data("date");
-        var readEndDate = (endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + (endDate.getDate()+1));
+    var startDate = $('th:eq(0)').data("date");
+    var readStartDate = (startDate.getFullYear() + "-" + (startDate.getMonth() + 1) + "-" + startDate.getDate());
+    var endDate = $('th:eq(6)').data("date");
+    var readEndDate = (endDate.getFullYear() + "-" + (endDate.getMonth() + 1) + "-" + (endDate.getDate() + 1));
 
-        var newgrid = $("#scheduler").data("kendoGrid");
-        newgrid.setDataSource(gridData);
+    initializeTotals()
+    var newgrid = $("#scheduler").data("kendoGrid");
+    newgrid.setDataSource(gridData);
+
+    filter = $('#comboFilter').val();
+    if ((filter == undefined) || (filter == "")) {
         LoadTasks(readStartDate, readEndDate);
     }
+    else {
+        filterByReference(readStartDate, readEndDate, filterId)
+    }
 
-});
+    
+}

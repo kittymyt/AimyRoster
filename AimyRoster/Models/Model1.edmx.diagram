@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="1b891d921ac84b5096325877a61ba27a" Name="Diagram1">
+        <EntityTypeShape EntityType="RosterModel.Reference" Width="1.5" PointX="3" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RosterModel.Site" Width="1.5" PointX="0.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RosterModel.Staff" Width="1.5" PointX="0.75" PointY="7.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="RosterModel.StaffAccess" Width="1.5" PointX="3" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RosterModel.StaffRoster" Width="1.5" PointX="5.25" PointY="3.25" IsExpanded="true" />
+        <AssociationConnector Association="RosterModel.FK_Reference_Site" ManuallyRouted="false" />
+        <AssociationConnector Association="RosterModel.FK_StaffRoster_References" ManuallyRouted="false" />
+        <AssociationConnector Association="RosterModel.FK_StaffAccess_Site" ManuallyRouted="false" />
+        <AssociationConnector Association="RosterModel.FK_StaffRoster_Site" ManuallyRouted="false" />
+        <AssociationConnector Association="RosterModel.FK_StaffAccess_Staff" ManuallyRouted="false" />
+        <AssociationConnector Association="RosterModel.FK_StaffRoster_Staff" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

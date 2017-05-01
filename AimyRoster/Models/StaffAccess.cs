@@ -12,17 +12,12 @@ namespace AimyRoster.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class StaffRoster
+    public partial class StaffAccess
     {
         public int Id { get; set; }
-        public Nullable<int> StaffId { get; set; }
-        public Nullable<System.DateTime> StartDate { get; set; }
-        public Nullable<System.DateTime> EndDate { get; set; }
-        public Nullable<int> SiteId { get; set; }
-        public Nullable<decimal> SalaryCost { get; set; }
-        public Nullable<int> RefId { get; set; }
+        public int StaffId { get; set; }
+        public int SiteId { get; set; }
     
-        public virtual Reference Reference { get; set; }
         public virtual Site Site { get; set; }
         public virtual Staff Staff { get; set; }
     }

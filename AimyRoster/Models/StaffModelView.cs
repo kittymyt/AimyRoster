@@ -11,5 +11,6 @@ namespace AimyRoster.Models
         public int SiteId { get; set; }
         public string SiteName { get; set; }
         public int StaffId { get; set; }
+
     }
 }

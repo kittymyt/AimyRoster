@@ -12,18 +12,20 @@ namespace AimyRoster.Models
     using System;
     using System.Collections.Generic;
     
-    public partial class StaffRoster
+    public partial class Reference
     {
-        public int Id { get; set; }
-        public Nullable<int> StaffId { get; set; }
-        public Nullable<System.DateTime> StartDate { get; set; }
-        public Nullable<System.DateTime> EndDate { get; set; }
-        public Nullable<int> SiteId { get; set; }
-        public Nullable<decimal> SalaryCost { get; set; }
-        public Nullable<int> RefId { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Reference()
+        {
+            this.StaffRoster = new HashSet<StaffRoster>();
+        }
     
-        public virtual Reference Reference { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public Nullable<int> SiteId { get; set; }
+    
         public virtual Site Site { get; set; }
-        public virtual Staff Staff { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<StaffRoster> StaffRoster { get; set; }
     }
 }

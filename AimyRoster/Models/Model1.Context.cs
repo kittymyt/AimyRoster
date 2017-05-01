@@ -25,8 +25,10 @@ namespace AimyRoster.Models
             throw new UnintentionalCodeFirstException();
         }
     
-        public virtual DbSet<Sites> Sites { get; set; }
-        public virtual DbSet<Staffs> Staffs { get; set; }
+        public virtual DbSet<Reference> Reference { get; set; }
+        public virtual DbSet<Site> Site { get; set; }
+        public virtual DbSet<Staff> Staff { get; set; }
+        public virtual DbSet<StaffAccess> StaffAccess { get; set; }
         public virtual DbSet<StaffRoster> StaffRoster { get; set; }
     }
 }
